@@ -362,6 +362,11 @@ function getSunsetAndUpdate() {
 function buildQueue(){
   var avail=PASSAGES.filter(function(p){return state.removed.indexOf(p.id)===-1;});
   if(!avail.length) return PASSAGES.map(function(p){return p.id;});
+  // Don't re-serve passages already seen this session (e.g. after "More like this"
+  // or hide/restore rebuilds the queue). If everything has been seen, fall back to
+  // the full available list so Next keeps working.
+  var unseen=avail.filter(function(p){return sessionHistory.indexOf(p.id)===-1;});
+  if(unseen.length) avail=unseen;
   var tagScore={};
   state.moreLike.forEach(function(id){
     var p=PASSAGES.filter(function(x){return x.id===id;})[0];
