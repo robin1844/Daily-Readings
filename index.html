@@ -264,15 +264,35 @@ var currentId = null;
 var sessionHistory = [];
 
 function saveState(){try{localStorage.setItem('bahai_v3',JSON.stringify(state));}catch(e){}}
+function cleanSavedIds(ids,validIds){
+  var clean=[],seen={};
+  if(!Array.isArray(ids)) return clean;
+  ids.forEach(function(id){
+    var key=String(id);
+    if(validIds[key]!==undefined&&!seen[key]){
+      seen[key]=true;
+      clean.push(validIds[key]);
+    }
+  });
+  return clean;
+}
 function loadState(){
   try{
     var s=localStorage.getItem('bahai_v3');
     if(s){var p=JSON.parse(s);
-      state.favourites=p.favourites||[];
-      state.removed=p.removed||[];
-      state.moreLike=p.moreLike||[];
+      var validIds={};
+      PASSAGES.forEach(function(passage){validIds[String(passage.id)]=passage.id;});
+      var oldFavourites=Array.isArray(p.favourites)?p.favourites:[];
+      var oldRemoved=Array.isArray(p.removed)?p.removed:[];
+      var oldMoreLike=Array.isArray(p.moreLike)?p.moreLike:[];
+      state.favourites=cleanSavedIds(oldFavourites,validIds);
+      state.removed=cleanSavedIds(oldRemoved,validIds);
+      state.moreLike=cleanSavedIds(oldMoreLike,validIds);
       state.lat=p.lat||null;
       state.lng=p.lng||null;
+      if(JSON.stringify(oldFavourites)!==JSON.stringify(state.favourites)||
+         JSON.stringify(oldRemoved)!==JSON.stringify(state.removed)||
+         JSON.stringify(oldMoreLike)!==JSON.stringify(state.moreLike)) saveState();
     }
   }catch(e){}
 }
